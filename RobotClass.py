@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
+import ipywidgets as widgets
+from IPython.display import display
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -199,25 +200,24 @@ class kinematic:
         :param tcp_list: tool paths
         :type tcp_list: list
         """
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        for tcp in tcp_list:
-            ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], lw=2)
-        ax.set_xlabel('x in mm')
-        ax.set_ylabel('y in mm')
-        ax.set_zlabel('z in mm')
-        ax.set_title('tool path in Cartesian Space')
 
-        axcolor = 'lightgoldenrodyellow'
-        axint = plt.axes([0.10, 0.05, 0.8, 0.03], facecolor=axcolor)
-        sint = Slider(axint, 'Step', 0, tcp.shape[0]-1, valstep=1)
-        def update(val):
+
+        fig = plt.figure()
+        def update(step):
+            ax = fig.gca(projection='3d')
             ax.clear()
             for tcp in tcp_list:
                 ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], lw=2)
-            ax.plot(tcp[val, 0], tcp[val, 1], tcp[val, 2], marker='o', color='r')
+                ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], marker='x')
+                ax.plot(tcp[step, 0], tcp[step, 1], tcp[step, 2], marker='o', color='r')
+            ax.set_xlabel('x in mm')
+            ax.set_ylabel('y in mm')
+            ax.set_zlabel('z in mm')
+            ax.set_title('tool path in Cartesian Space')
             fig.canvas.draw_idle()
-        sint.on_changed(update)
+            display(fig)
+
+        widgets.interact(update, step=widgets.IntSlider(min=0,max=9,step=1,value=0))
 
         plt.show()
 
