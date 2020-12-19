@@ -200,12 +200,9 @@ class kinematic:
         :param tcp_list: tool paths
         :type tcp_list: list
         """
-
-
+        fig = plt.figure()
         def update(step):
-            fig = plt.figure()
             ax = fig.gca(projection='3d')
-            ax.clear()
             for tcp in tcp_list:
                 ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], lw=2)
                 ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], marker='x')
@@ -218,8 +215,6 @@ class kinematic:
             display(fig)
 
         widgets.interact(update, step=widgets.IntSlider(min=0,max=9,step=1,value=0))
-
-        plt.show()
 
 
     def plot_joint_space(self, angles):
