@@ -234,7 +234,7 @@ class robot:
                         self.plot_frame(
                             joint_frame[step, cnt1, :, :],
                             ax,
-                            text=str(cnt1),
+                            #text=str(cnt1),
                             axes_length=200)
                         # links
                         if cnt1 > 0:
