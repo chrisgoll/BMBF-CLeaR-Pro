@@ -202,8 +202,8 @@ class kinematic:
         """
 
 
-        fig = plt.figure()
         def update(step):
+            fig = plt.figure()
             ax = fig.gca(projection='3d')
             ax.clear()
             for tcp in tcp_list:
