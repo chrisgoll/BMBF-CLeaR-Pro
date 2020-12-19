@@ -2,10 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from IPython.display import display
-import warnings
-warnings.filterwarnings('ignore')
 
-class kinematic:
+class robot:
     """robot kinematics class
     """
     def __init__(self, par):
@@ -177,7 +175,7 @@ class kinematic:
         :return: tool path in Cartesian Space
         :rtype: np.ndarray(n, 6)
         """
-        tcp_xyz_abg = []
+        joint_frames = np.zeros((angles.shape[0], 8, 4, 4))
         # configurations
         for cnt1 in range(angles.shape[0]):
             frame = np.array([[1, 0, 0, 0],
@@ -187,34 +185,85 @@ class kinematic:
             # joints
             for cnt2 in range(0,8): 
                 frame = frame.dot(self.frames(self.theta[cnt2] + angles[cnt1, cnt2], self.d[cnt2], self.a[cnt2] , self.alpha[cnt2]))
-            xyz = frame[0:3,3]
-            abg = np.asarray(self.euler_angles_zyx(frame))
-            tcp_xyz_abg.append([xyz[0], xyz[1], xyz[2], abg[0], abg[1], abg[2]])
+                joint_frames[cnt1, cnt2, :, :] = np.copy(frame)
 
-        return np.asarray(tcp_xyz_abg)
+        return joint_frames
 
 
-    def plot_cartesian_space(self, tcp_list):
+    def plot_tool_path(self, tool_path_list):
         """plots the tool path in Cartesian Space
 
         :param tcp_list: tool paths
         :type tcp_list: list
         """
+        plt.xkcd(scale=0)
         fig = plt.figure()
+        # callback function
         def update(step):
             ax = fig.gca(projection='3d')
-            for tcp in tcp_list:
-                ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], lw=2)
-                ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], marker='x')
-                ax.plot(tcp[step, 0], tcp[step, 1], tcp[step, 2], marker='o', color='r')
+            ax.clear()
+            # toolpath plot
+            for tool_path in tool_path_list:
+                ax.plot(tool_path[:, 0], tool_path[:, 1], tool_path[:, 2], lw=2, marker='.')
+                ax.plot(tool_path[step, 0], tool_path[step, 1], tool_path[step, 2], marker='o', color='green')
             ax.set_xlabel('x in mm')
             ax.set_ylabel('y in mm')
             ax.set_zlabel('z in mm')
-            ax.set_title('tool path in Cartesian Space')
+            ax.set_title('tool path in cartesian space')
             fig.canvas.draw_idle()
-            display(fig)
+            # display(fig)
+        # update(1)
+        # plt.show()
+        widgets.interact(update, step=widgets.IntSlider(min=0,max=tool_path_list[0].shape[0]-1,step=1,value=0))
 
-        widgets.interact(update, step=widgets.IntSlider(min=0,max=9,step=1,value=0))
+
+    def plot_robot_and_path(self, joint_frames_list, tool_path_list):
+        fig = plt.figure()
+        # callback function
+        def update(step):
+            ax = fig.gca(projection='3d')
+            ax.clear()
+            # toolpath plot
+            for tool_path in tool_path_list:
+                ax.plot(tool_path[:, 0], tool_path[:, 1], tool_path[:, 2], lw=2, marker='.')
+                ax.plot(tool_path[step, 0], tool_path[step, 1], tool_path[step, 2], marker='o', color='green')
+            # robot plot
+            for joint_frame in joint_frames_list:
+                # joint frames
+                for cnt1 in range(joint_frame.shape[1]):
+                        self.plot_frame(
+                            joint_frame[step, cnt1, :, :],
+                            ax,
+                            text=str(cnt1),
+                            axes_length=200)
+                        # links
+                        if cnt1 > 0:
+                            ax.plot(
+                                [joint_frame[step, cnt1-1, 0, 3], joint_frame[step, cnt1, 0, 3]],
+                                [joint_frame[step, cnt1-1, 1, 3], joint_frame[step, cnt1, 1, 3]],
+                                [joint_frame[step, cnt1-1, 2, 3], joint_frame[step, cnt1, 2, 3]],
+                                '-', color='black', lw=2)
+                # motion of last frame
+                ax.plot(
+                    joint_frame[:, -1, 0, 3],
+                    joint_frame[:, -1, 1, 3],
+                    joint_frame[:, -1, 2, 3],
+                    '-', color='red', lw=2)
+
+            ax.set_xlim((-500, 1500))
+            ax.set_ylim((-1000, 1000))
+            ax.set_zlim((0, 2000))
+            ax.set_xlabel('x in mm')
+            ax.set_ylabel('y in mm')
+            ax.set_zlabel('z in mm')
+            ax.set_title('robot and tool path in cartesian space')
+            fig.canvas.draw_idle()
+            # display(fig)
+        # update(1)
+        # plt.show()
+        widgets.interact(update, step=widgets.IntSlider(min=0,max=joint_frames_list[0].shape[0]-1,step=1,value=0))
+
+        pass
 
 
     def plot_joint_space(self, angles):
@@ -223,7 +272,6 @@ class kinematic:
         :param angles: Joint angles
         :type angles: np.ndarray(n, 6)
         """
-        # plt.xkcd()
         fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(
             3, 2, sharex=True, sharey=False
             )
@@ -248,7 +296,7 @@ class kinematic:
         ax6.set_xlabel('time')
 
         plt.tight_layout()
-        fig.suptitle('tool path in Joint Space')
+        fig.suptitle('tool path in joint space')
 
         plt.show()
 
@@ -313,3 +361,32 @@ class kinematic:
                        [            0,                np.sin(alpha),                np.cos(alpha),               d],
                        [            0,                            0,                            0,               1] ])
         return T
+
+
+    def plot_frame(self, T, ax, text='', fontsize=10, axes_length=50):
+        """plots the frame T into the axes ax and annotates the origin with text
+
+        :param T: frame to plot
+        :type T: np.ndarray[4,4]
+        :param ax: axes to plot T in 
+        :type ax: matplotlib pyplot axes
+        :param text: text to annotate the frame with, defaults to ''
+        :type text: str, optional
+        :param fontsize: fontsize of annotation, defaults to 10
+        :type fontsize: int, optional
+        :param axes_length: length of coordinate axis, defaults to 1
+        :type axes_length: int, optional
+        :return: 1
+        :rtype: 1
+        """
+        ax.plot([T[0, 3], T[0, 3]+axes_length*T[0,0]],
+                [T[1, 3], T[1, 3]+axes_length*T[1,0]],
+                [T[2, 3], T[2, 3]+axes_length*T[2,0]], 'r')
+        ax.plot([T[0, 3], T[0, 3]+axes_length*T[0,1]],
+                [T[1, 3], T[1, 3]+axes_length*T[1,1]],
+                [T[2, 3], T[2, 3]+axes_length*T[2,1]], 'g')
+        ax.plot([T[0, 3], T[0, 3]+axes_length*T[0,2]],
+                [T[1, 3], T[1, 3]+axes_length*T[1,2]],
+                [T[2, 3], T[2, 3]+axes_length*T[2,2]], 'b')
+        ax.text(T[0, 3], T[1, 3], T[2, 3] , s=text, fontsize=fontsize)
+        return 1
