@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 import warnings
 warnings.filterwarnings('ignore')
 
 class kinematic:
-    """[summary]
+    """robot kinematics class
     """
     def __init__(self, par):
         """initializes the kinematics by specifying the d-h-parameters
@@ -23,6 +24,21 @@ class kinematic:
 
 
     def linear_interpolation(self, start_xyz, end_xyz, start_abg, end_abg, npoints):
+        """interpolates linear in Cartesian Space between start end end point
+
+        :param start_xyz: start point x, y, z
+        :type start_xyz: list
+        :param end_xyz: end point x, y, z
+        :type end_xyz: list
+        :param start_abg: start point alpha, beta, gamma
+        :type start_abg: list
+        :param end_abg: end point alpha, beta, gamma
+        :type end_abg: list
+        :param npoints: number of interpolation points
+        :type npoints: number
+        :return: tool path in Cartesian Space
+        :rtype: np.ndarray(n, 6)
+        """
         x = np.linspace(start_xyz[0],end_xyz[0], npoints)
         y = np.linspace(start_xyz[1],end_xyz[1], npoints)
         z = np.linspace(start_xyz[2],end_xyz[2], npoints)
@@ -37,6 +53,13 @@ class kinematic:
 
 
     def inverse(self, tcp):
+        """calculates the inverse transformation from Cartesian to Joint Space
+
+        :param tcp: tool path in Cartesian Space
+        :type tcp: np.ndarray(n, 6)
+        :return: tool path in Joint Space
+        :rtype: np.ndarray(n, 6)
+        """
         x = tcp[:, 0]
         y = tcp[:, 1]
         z = tcp[:, 2]
@@ -146,6 +169,13 @@ class kinematic:
 
 
     def direct(self, angles):
+        """calculates the direct transformation from Joint to Cartesian Space
+
+        :param angles: tool path in Joint Space
+        :type angles: np.ndarray(n, 6)
+        :return: tool path in Cartesian Space
+        :rtype: np.ndarray(n, 6)
+        """
         tcp_xyz_abg = []
         # configurations
         for cnt1 in range(angles.shape[0]):
@@ -163,7 +193,12 @@ class kinematic:
         return np.asarray(tcp_xyz_abg)
 
 
-    def plot_tcp_3d(self, tcp_list):
+    def plot_cartesian_space(self, tcp_list):
+        """plots the tool path in Cartesian Space
+
+        :param tcp_list: tool paths
+        :type tcp_list: list
+        """
         fig = plt.figure()
         ax = fig.gca(projection='3d')
         for tcp in tcp_list:
@@ -171,39 +206,70 @@ class kinematic:
         ax.set_xlabel('x in mm')
         ax.set_ylabel('y in mm')
         ax.set_zlabel('z in mm')
+        ax.set_title('tool path in Cartesian Space')
+
+        axcolor = 'lightgoldenrodyellow'
+        axint = plt.axes([0.10, 0.05, 0.8, 0.03], facecolor=axcolor)
+        sint = Slider(axint, 'Step', 0, tcp.shape[0]-1, valstep=1)
+        def update(val):
+            ax.clear()
+            for tcp in tcp_list:
+                ax.plot(tcp[:, 0], tcp[:, 1], tcp[:, 2], lw=2)
+            ax.plot(tcp[val, 0], tcp[val, 1], tcp[val, 2], marker='o', color='r')
+            fig.canvas.draw_idle()
+        sint.on_changed(update)
+
         plt.show()
 
 
-    def plot_joint_angles(self, angles):
+    def plot_joint_space(self, angles):
+        """plots the tool path in Joint Space
+
+        :param angles: Joint angles
+        :type angles: np.ndarray(n, 6)
+        """
         # plt.xkcd()
-        _, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(
+        fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(
             3, 2, sharex=True, sharey=False
             )
         ax1.plot(np.degrees(angles[:, 2]))
-        ax1.set_ylabel('q1')
+        ax1.set_title('q1')
 
         ax2.plot(np.degrees(angles[:, 3]))
-        ax2.set_ylabel('q2')
+        ax2.set_title('q2')
 
         ax3.plot(np.degrees(angles[:, 4]))
-        ax3.set_ylabel('q3')
+        ax3.set_title('q3')
 
         ax4.plot(np.degrees(angles[:, 5]))
-        ax4.set_ylabel('q4')
+        ax4.set_title('q4')
         
         ax5.plot(np.degrees(angles[:, 6]))
-        ax5.set_ylabel('q5')
+        ax5.set_title('q5')
         ax5.set_xlabel('time')
 
         ax6.plot(np.degrees(angles[:, 7]))
-        ax6.set_ylabel('q6')
+        ax6.set_title('q6')
         ax6.set_xlabel('time')
+
+        plt.tight_layout()
+        fig.suptitle('tool path in Joint Space')
 
         plt.show()
 
 
     def R(self, alpha, beta, gamma):
+        """calculates the rotation matrix from euler zyx angles
 
+        :param alpha: rotation by z in radians
+        :type alpha: number
+        :param beta: rotation by y in radians
+        :type beta: number
+        :param gamma: rotation by x in radians
+        :type gamma: number
+        :return: rotation matrix
+        :rtype: np.ndarray(3, 3)
+        """
         ca = np.cos(alpha)
         sa = np.sin(alpha)
         cb = np.cos(beta)
@@ -234,6 +300,19 @@ class kinematic:
 
 
     def frames(self, theta, d, a, alpha):
+        """calculates a frame by definition of Denavit-Hartenberg-parameters
+
+        :param theta: theta (angle)
+        :type theta: number
+        :param d: d (length)
+        :type d: number
+        :param a: a (length)
+        :type a: number
+        :param alpha: alpha (angle)
+        :type alpha: number
+        :return: frame
+        :rtype: np.ndarray(4, 4)
+        """
         T = np.array([ [np.cos(theta), -np.sin(theta)*np.cos(alpha),  np.sin(theta)*np.sin(alpha), a*np.cos(theta)], 
                        [np.sin(theta),  np.cos(theta)*np.cos(alpha), -np.cos(theta)*np.sin(alpha), a*np.sin(theta)],
                        [            0,                np.sin(alpha),                np.cos(alpha),               d],
