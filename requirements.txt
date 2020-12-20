@@ -3,3 +3,4 @@ matplotlib == 3.3.2
 PyQt5==5.15.2
 PyQt5-sip==12.8.1
 ipympl==0.5.8
+colorama==0.4.3
