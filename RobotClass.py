@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import ipywidgets as widgets
 from IPython.display import display
 from colorama import Fore, Back, Style
@@ -269,6 +270,12 @@ class robot:
             ax.set_zlabel('z in mm')
             ax.set_title('tool path in cartesian space')
             ax.grid(False)
+            plt.locator_params(axis='x', nbins=3)
+            plt.locator_params(axis='y', nbins=3)
+            plt.locator_params(axis='z', nbins=3)
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.zaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
             fig.canvas.draw_idle()
             # display(fig)
         # update(1)
@@ -327,7 +334,12 @@ class robot:
             ax.set_zlabel('z in mm')
             ax.set_title('robot and tool path in cartesian space')
             ax.grid(False)
-            ax.set_facecolor('white')
+            plt.locator_params(axis='x', nbins=3)
+            plt.locator_params(axis='y', nbins=3)
+            plt.locator_params(axis='z', nbins=3)
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.zaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
             fig.canvas.draw_idle()
             # display(fig)
         # update(1)
@@ -372,7 +384,7 @@ class robot:
 
         plt.tight_layout()
         fig.suptitle('tool path in joint space')
-
+        
         plt.show()
 
         print('\n')
