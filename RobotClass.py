@@ -18,17 +18,19 @@ class robot:
         :type par: dictionary
         """
         # Denavit-Hartenberg-Parameter
-        self.theta = np.array([ 0,          0,          0,       -90,        180,       180,   0,       -90])*np.pi/180
-        self.d =     np.array([ 0, par['l11'],          0,         0,          0, par['l4'],   0, par['l6']])
-        self.a =     np.array([ 0,          0, par['l12'], par['l2'], -par['l3'],         0,   0,         0])
-        self.alpha = np.array([ 0,          0,        -90,         0,         90,        90, -90,         0])*np.pi/180
+        self.theta = np.array([ 0, 0, 0, -90, 180, 180, 0, -90])*np.pi/180
+        self.d =     np.array([ 0, par['l11'], 0, 0, 0, par['l4'], 0, par['l6']])
+        self.a =     np.array([ 0, 0, par['l12'], par['l2'], -par['l3'], 0, 0, 0])
+        self.alpha = np.array([ 0, 0, -90, 0, 90, 90, -90,  0])*np.pi/180
 
         print('\n')
         print(Fore.WHITE,Back.GREEN + 'robot kinematics initialized!')
         print(Style.RESET_ALL)
 
 
-    def linear_interpolation(self, start_xyz, end_xyz, start_abg, end_abg, npoints):
+    def linear_interpolation(
+        self, start_xyz, end_xyz, start_abg, end_abg, npoints
+        ):
         """interpolates linear in Cartesian Space between start end end point
 
         :param start_xyz: start point x, y, z
@@ -58,7 +60,9 @@ class robot:
         return np.vstack((x, y, z, alpha, beta, gamma)).T
 
 
-    def circular_interpolation(self, r, c, alpha, beta, gamma, start_abg, end_abg, npoints):
+    def circular_interpolation(
+        self, r, c, alpha, beta, gamma, start_abg, end_abg, npoints
+        ):
         """calculates a circular tool path
 
         :param r: radius of circle
@@ -90,7 +94,9 @@ class robot:
             R = self.R(theta[cnt1], 0, 0)
             x = np.array([1, 0, 0])
             circle_planar.append(S @ R @ x)
-        circle_planar_hom = np.vstack((np.asarray(circle_planar).T, np.ones(len(theta))))
+        circle_planar_hom = np.vstack((
+            np.asarray(circle_planar).T, np.ones(len(theta))
+            ))
         circle = T @ circle_planar_hom
         alpha = np.linspace(start_abg[0],end_abg[0], npoints)*np.pi/180
         beta  = np.linspace(start_abg[1],end_abg[1], npoints)*np.pi/180
@@ -100,10 +106,17 @@ class robot:
         print(Fore.WHITE,Back.GREEN + 'circular motion interpolated!')
         print(Style.RESET_ALL)
 
-        return np.hstack((circle.T[:, 0:3], alpha[:, np.newaxis], beta[:, np.newaxis], gamma[:, np.newaxis]))
+        return np.hstack((
+            circle.T[:, 0:3],
+            alpha[:, np.newaxis],
+            beta[:, np.newaxis],
+            gamma[:, np.newaxis]
+            ))
 
 
-    def inverse(self, tcp):
+    def inverse(
+        self, tcp
+        ):
         """calculates the inverse transformation from Cartesian to Joint Space
 
         :param tcp: tool path in Cartesian Space
@@ -143,24 +156,24 @@ class robot:
             q3 = 3/2*np.pi-phi1+phi2
             
             # q2
-            p14_1 = np.array([[ np.cos(q1), np.sin(q1),  0],
-                              [               0,          0,      -1],
-                              [-np.sin(q1), np.cos(q1),  0]]).dot(p14).astype(float)
+            p14_1 = np.array([[ np.cos(q1), np.sin(q1), 0],
+                              [ 0, 0, -1],
+                              [-np.sin(q1), np.cos(q1), 0]]).dot(p14).astype(float)
             beta1 = np.arctan2(-p14_1[1],p14_1[0])
             beta2 = np.arccos((self.a[3]**2+np.linalg.norm(p14)**2-l34**2)/
                               (2*self.a[3]*np.linalg.norm(p14)))
             q2 = -(beta1+beta2)
             
             # q5
-            A_01 = np.array([[ np.cos(q1-self.theta[2]),  0,-np.sin(q1-self.theta[2])],
-                             [ np.sin(q1-self.theta[2]),  0, np.cos(q1-self.theta[2])],
-                             [                             0, -1,                             0]])
-            A_12 = np.array([[ np.sin(q2-self.theta[3]), np.cos(q2-self.theta[3]),  0],
-                             [-np.cos(q2-self.theta[3]), np.sin(q2-self.theta[3]),  0],
-                             [                             0,                             0,  1]])
+            A_01 = np.array([[ np.cos(q1-self.theta[2]), 0,-np.sin(q1-self.theta[2])],
+                             [ np.sin(q1-self.theta[2]), 0, np.cos(q1-self.theta[2])],
+                             [ 0, -1, 0]])
+            A_12 = np.array([[ np.sin(q2-self.theta[3]), np.cos(q2-self.theta[3]), 0],
+                             [-np.cos(q2-self.theta[3]), np.sin(q2-self.theta[3]), 0],
+                             [ 0, 0, 1]])
             A_23 = np.array([[-np.cos(q3-self.theta[4]), 0, -np.sin(q3-self.theta[4])],
-                             [-np.sin(q3-self.theta[4]), 0,  np.cos(q3-self.theta[4])],
-                             [                             0, 1,                              0]])
+                             [-np.sin(q3-self.theta[4]), 0, np.cos(q3-self.theta[4])],
+                             [ 0, 1, 0]])
             x3 = A_01.dot(A_12).dot(A_23).astype(float)[0:3,0]
             y3 = A_01.dot(A_12).dot(A_23).astype(float)[0:3,1]
             z3 = A_01.dot(A_12).dot(A_23).astype(float)[0:3,2]
@@ -223,10 +236,12 @@ class robot:
         return np.asarray(q)
 
 
-    def direct(self, angles):
+    def direct(
+        self, angles
+        ):
         """calculates the direct transformation from Joint to Cartesian Space
 
-        :param angles: tool path in Joint Space
+        :param angles: tool path in joint space in rad
         :type angles: np.ndarray(n, 6)
         :return: tool path in Cartesian Space
         :rtype: np.ndarray(n, 6)
@@ -240,7 +255,14 @@ class robot:
                               [0, 0, 0, 1]])
             # joints
             for cnt2 in range(0,8): 
-                frame = frame.dot(self.frames(self.theta[cnt2] + angles[cnt1, cnt2], self.d[cnt2], self.a[cnt2] , self.alpha[cnt2]))
+                frame = frame.dot(
+                    self.frames(
+                        self.theta[cnt2] + angles[cnt1, cnt2],
+                        self.d[cnt2],
+                        self.a[cnt2],
+                        self.alpha[cnt2]
+                        )
+                    )
                 joint_frames[cnt1, cnt2, :, :] = np.copy(frame)
 
         print('\n')
@@ -250,7 +272,9 @@ class robot:
         return joint_frames
 
 
-    def plot_tool_path(self, tool_path_list):
+    def plot_tool_path(
+        self, tool_path_list
+        ):
         """plots the tool path in cartesian space
 
         :param tcp_list: tool paths
@@ -258,13 +282,23 @@ class robot:
         """
         fig = plt.figure()
         # callback function
-        def update(step):
+        def update(step, marker):
             ax = fig.gca(projection='3d')
             ax.clear()
+            if marker is True:
+                marker_path = '.'
+            else:
+                marker_path = ''
             # toolpath plot
             for tool_path in tool_path_list:
-                ax.plot(tool_path[:, 0], tool_path[:, 1], tool_path[:, 2], lw=2, marker='.')
-                ax.plot(tool_path[step, 0], tool_path[step, 1], tool_path[step, 2], marker='o', color='green')
+                ax.plot(
+                    tool_path[:, 0], tool_path[:, 1], tool_path[:, 2],
+                    lw=1, marker=marker_path
+                    )
+                ax.plot(
+                    tool_path[step, 0], tool_path[step, 1], tool_path[step, 2],
+                    marker='o', color='green'
+                    )
             ax.set_xlabel('x in mm')
             ax.set_ylabel('y in mm')
             ax.set_zlabel('z in mm')
@@ -280,13 +314,19 @@ class robot:
             # display(fig)
         # update(1)
         # plt.show()
-        widgets.interact(update, step=widgets.IntSlider(min=0,max=tool_path_list[0].shape[0]-1,step=1,value=0))
+        widgets.interact(
+            update,
+            step=(0, tool_path_list[0].shape[0]-1, 1),
+            marker=False
+            )
 
         print('\n')
         print(Fore.WHITE,Back.GREEN + 'tool path in cartesian space plotted!')
         print(Style.RESET_ALL)
 
-    def plot_robot_and_path(self, joint_frames_list, tool_path_list):
+    def plot_robot_and_path(
+        self, joint_frames_list, tool_path_list
+        ):
         """plots the robot, the TCP motion and the tool path in cartesian space
 
         :param joint_frames_list: list of joint frames
@@ -296,28 +336,45 @@ class robot:
         """
         fig = plt.figure()
         # callback function
-        def update(step):
+        def update(step, marker, frame_number):
             ax = fig.gca(projection='3d')
             ax.clear()
+            if marker is True:
+                marker_path = '.'
+            else:
+                marker_path = ''
             # toolpath plot
             for tool_path in tool_path_list:
-                ax.plot(tool_path[:, 0], tool_path[:, 1], tool_path[:, 2], lw=2, marker='.')
-                ax.plot(tool_path[step, 0], tool_path[step, 1], tool_path[step, 2], marker='o', color='green')
+                ax.plot(
+                    tool_path[:, 0], tool_path[:, 1], tool_path[:, 2],
+                    lw=2, marker=marker_path
+                    )
+                ax.plot(
+                    tool_path[step, 0], tool_path[step, 1], tool_path[step, 2],
+                    marker='o', color='green'
+                    )
             # robot plot
             for joint_frame in joint_frames_list:
                 # joint frames
                 for cnt1 in range(joint_frame.shape[1]):
+                        if frame_number is True:
+                            frame_text = str(cnt1)
+                        else:
+                            frame_text = ''
                         self.plot_frame(
                             joint_frame[step, cnt1, :, :],
                             ax,
-                            # text=str(cnt1),
+                            text=frame_text,
                             axes_length=200)
                         # links
                         if cnt1 > 0:
                             ax.plot(
-                                [joint_frame[step, cnt1-1, 0, 3], joint_frame[step, cnt1, 0, 3]],
-                                [joint_frame[step, cnt1-1, 1, 3], joint_frame[step, cnt1, 1, 3]],
-                                [joint_frame[step, cnt1-1, 2, 3], joint_frame[step, cnt1, 2, 3]],
+                                [joint_frame[step, cnt1-1, 0, 3], 
+                                 joint_frame[step, cnt1, 0, 3]],
+                                [joint_frame[step, cnt1-1, 1, 3],
+                                 joint_frame[step, cnt1, 1, 3]],
+                                [joint_frame[step, cnt1-1, 2, 3],
+                                 joint_frame[step, cnt1, 2, 3]],
                                 '-', color='black', lw=2)
                 # motion of last frame
                 ax.plot(
@@ -325,7 +382,7 @@ class robot:
                     joint_frame[:, -1, 1, 3],
                     joint_frame[:, -1, 2, 3],
                     '-', color='red', lw=2)
-
+            # axes properties
             ax.set_xlim((-500, 1500))
             ax.set_ylim((-1000, 1000))
             ax.set_zlim((0, 2000))
@@ -344,7 +401,12 @@ class robot:
             # display(fig)
         # update(1)
         # plt.show()
-        widgets.interact(update, step=widgets.IntSlider(min=0,max=joint_frames_list[0].shape[0]-1,step=1,value=0))
+        widgets.interact(
+            update,
+            step=(0, joint_frames_list[0].shape[0]-1, 1),
+            marker=False,
+            frame_number=False
+            )
 
         print('\n')
         print(Fore.WHITE,Back.GREEN + 'tool path and robot in cartesian space plotted!')
@@ -353,7 +415,9 @@ class robot:
         pass
 
 
-    def plot_joint_space(self, angles):
+    def plot_joint_space(
+        self, angles
+        ):
         """plots the tool path in joint space
 
         :param angles: Joint angles
@@ -392,7 +456,78 @@ class robot:
         print(Style.RESET_ALL)
 
 
-    def R(self, alpha, beta, gamma):
+    def plot_move_robot(
+        self
+        ):
+        fig = plt.figure()
+        # callback function
+        def update(joint1, joint2, joint3, joint4, joint5, joint6, frame_number):
+            ax = fig.gca(projection='3d')
+            ax.clear()
+            # robot plot
+            q = np.array([[
+                0,
+                0,
+                np.radians(joint1),
+                np.radians(joint2),
+                np.radians(joint3),
+                np.radians(joint4),
+                np.radians(joint5),
+                np.radians(joint6),
+                ]])
+            joint_frame = self.direct(q)
+            # joint frames
+            for cnt1 in range(joint_frame.shape[1]):
+                if frame_number is True:
+                    frame_text = str(cnt1)
+                else:
+                    frame_text = ''
+                self.plot_frame(
+                    joint_frame[0, cnt1, :, :],
+                    ax,
+                    text=frame_text,
+                    axes_length=200)
+                # links
+                if cnt1 > 0:
+                    ax.plot(
+                        [joint_frame[0, cnt1-1, 0, 3], 
+                         joint_frame[0, cnt1, 0, 3]],
+                        [joint_frame[0, cnt1-1, 1, 3],
+                         joint_frame[0, cnt1, 1, 3]],
+                        [joint_frame[0, cnt1-1, 2, 3],
+                         joint_frame[0, cnt1, 2, 3]],
+                        '-', color='black', lw=2)
+            # axes properties
+            ax.set_xlim((-500, 1500))
+            ax.set_ylim((-1000, 1000))
+            ax.set_zlim((0, 2000))
+            ax.set_xlabel('x in mm')
+            ax.set_ylabel('y in mm')
+            ax.set_zlabel('z in mm')
+            ax.set_title('robot and tool path in cartesian space')
+            ax.grid(False)
+            plt.locator_params(axis='x', nbins=3)
+            plt.locator_params(axis='y', nbins=3)
+            plt.locator_params(axis='z', nbins=3)
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            ax.zaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+            fig.canvas.draw_idle()
+        widgets.interact(
+            update,
+            joint1=(-180, 180, 1),
+            joint2=(-180, 180, 1),
+            joint3=(-180, 180, 1),
+            joint4=(-180, 180, 1),
+            joint5=(-180, 180, 1),
+            joint6=(-180, 180, 1),
+            frame_number=False
+            )
+        update(0, 0, 0, 0, 0, 0, False)
+
+    def R(
+        self, alpha, beta, gamma
+        ):
         """calculates the rotation matrix from euler zyx angles
 
         :param alpha: rotation by z in radians
@@ -417,7 +552,9 @@ class robot:
         return R
 
 
-    def euler_angles_zyx(self, T):
+    def euler_angles_zyx(
+        self, T
+        ):
         """returns the angles alpha, beta and gamma by the consecutive axis
         z, y and x for the frame T
 
@@ -433,7 +570,9 @@ class robot:
         return alpha, beta, gamma
 
 
-    def frames(self, theta, d, a, alpha):
+    def frames(
+        self, theta, d, a, alpha
+        ):
         """calculates a frame by definition of Denavit-Hartenberg-parameters
 
         :param theta: theta (angle)
@@ -447,14 +586,20 @@ class robot:
         :return: frame
         :rtype: np.ndarray(4, 4)
         """
-        T = np.array([ [np.cos(theta), -np.sin(theta)*np.cos(alpha),  np.sin(theta)*np.sin(alpha), a*np.cos(theta)], 
-                       [np.sin(theta),  np.cos(theta)*np.cos(alpha), -np.cos(theta)*np.sin(alpha), a*np.sin(theta)],
-                       [            0,                np.sin(alpha),                np.cos(alpha),               d],
-                       [            0,                            0,                            0,               1] ])
+        ct = np.cos(theta)
+        st = np.sin(theta)
+        ca = np.cos(alpha)
+        sa = np.sin(alpha)
+        T = np.array([ [ct, -st*ca,  st*sa, a*ct], 
+                       [st,  ct*ca, -ct*sa, a*st],
+                       [  0,    sa,     ca,    d],
+                       [  0,     0,      0,    1] ])
         return T
 
 
-    def plot_frame(self, T, ax, text='', fontsize=10, axes_length=50):
+    def plot_frame(
+        self, T, ax, text='', fontsize=10, axes_length=50
+        ):
         """plots the frame T into the axes ax and annotates the origin with text
 
         :param T: frame to plot
