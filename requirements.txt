@@ -1,3 +1,6 @@
-pymesh2==0.3
-SimulatorToFMU==1.0.0rc14
-wincertstore==0.2
+numpy == 1.19.1
+matplotlib == 3.5.2
+PyQt5==5.15.2
+PyQt5-sip==12.8.1
+ipympl==0.9.1
+colorama==0.4.3
