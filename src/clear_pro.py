@@ -661,7 +661,7 @@ class Visualization(object):
             toolpath_rb = self.simulation.robot_real.calc_direct(self.simulation.joint_angles)
             toolpath_w = [self.workpiece.pose.inv().A @ pose[-1] for pose in toolpath_rb]
 
-            T = np.copy(toolpath_w[0])
+            T = np.copy(toolpath_w[tool_pose])
             T[:3, 3] *= 1000
             tool_geo = tool_geo.transform(T)
             tool_geo = tool_geo.translate([0, 0, self.tool.flute_length/2])

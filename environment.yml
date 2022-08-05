@@ -3,44 +3,54 @@ channels:
   - defaults
 dependencies:
   - python=3.9
-  - tzdata
-  - prompt-toolkit
-  - debugpy
-  - wcwidth
-  - wheel
-  - entrypoints
-  - certifi
-  - python-dateutil
   - stack_data
-  - tornado
-  - pyzmq
-  - nest-asyncio
-  - vs2015_runtime
-  - six
-  - vc
-  - jupyter_core
-  - jupyter_client
-  - ipython
-  - colorama
-  - backcall
+  - entrypoints
   - asttokens
-  - setuptools
-  - executing
-  - pure_eval
+  - python_abi
+  - libzlib
+  - debugpy
+  - jupyter_client
   - ca-certificates
-  - parso
-  - jedi
-  - openssl
-  - sqlite
-  - pickleshare
-  - pip
-  - matplotlib-inline
-  - pygments
-  - wincertstore
-  - decorator
-  - pywin32
-  - traitlets
   - zeromq
+  - tornado
+  - sqlite
+  - ucrt
+  - wheel
+  - backcall
+  - decorator
+  - parso
+  - ipython
+  - vs2015_runtime
+  - pickleshare
+  - colorama
+  - pywin32
+  - executing
+  - pyparsing
+  - backports
+  - libffi
   - libsodium
+  - jedi
+  - backports.functools_lru_cache
+  - prompt-toolkit
+  - six
+  - pip
+  - nest-asyncio
+  - tzdata
+  - tk
+  - bzip2
+  - vc
+  - setuptools
+  - pyzmq
+  - pygments
+  - python-dateutil
+  - pure_eval
+  - wcwidth
+  - matplotlib-inline
+  - xz
+  - psutil
+  - jupyter_core
+  - openssl
+  - traitlets
+  - packaging
   - ipykernel
 prefix: D:\Software\Miniconda\envs\bmbf-ki
