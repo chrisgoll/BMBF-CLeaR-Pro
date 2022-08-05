@@ -1,0 +1,56 @@
+name: bmbf-ki
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - stack_data
+  - entrypoints
+  - asttokens
+  - python_abi
+  - libzlib
+  - debugpy
+  - jupyter_client
+  - ca-certificates
+  - zeromq
+  - tornado
+  - sqlite
+  - ucrt
+  - wheel
+  - backcall
+  - decorator
+  - parso
+  - ipython
+  - vs2015_runtime
+  - pickleshare
+  - colorama
+  - pywin32
+  - executing
+  - pyparsing
+  - backports
+  - libffi
+  - libsodium
+  - jedi
+  - backports.functools_lru_cache
+  - prompt-toolkit
+  - six
+  - pip
+  - nest-asyncio
+  - tzdata
+  - tk
+  - bzip2
+  - vc
+  - setuptools
+  - pyzmq
+  - pygments
+  - python-dateutil
+  - pure_eval
+  - wcwidth
+  - matplotlib-inline
+  - xz
+  - psutil
+  - jupyter_core
+  - openssl
+  - traitlets
+  - packaging
+  - ipykernel
+prefix: D:\Software\Miniconda\envs\bmbf-ki
