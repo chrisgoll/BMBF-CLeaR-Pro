@@ -306,9 +306,14 @@ class Simulation(object):
         self.import_precision = import_precision
         self.robot_ideal = Robot(parameters[0])
         self.robot_real = Robot(parameters[1])
+        start_time_inverse = time.time()
         self.joint_angles = np.asarray(
             [self.robot_ideal.rtb_robot.ikine_LM(traj).q for traj in self.toolpath]
             )
+        print('\n')
+        print('calculation time (inverse transformation): {:.3f}s'.format(
+            time.time()-start_time_inverse
+        ))
         
         print('\n')
         print('Simulation class object instantiated')
