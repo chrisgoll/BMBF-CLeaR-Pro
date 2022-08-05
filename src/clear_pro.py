@@ -9,7 +9,6 @@ import copy
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from matplotlib.widgets import Slider
-from roboticstoolbox.backends.PyPlot import PyPlot
 import lmfit as lf
 import configparser
 import time
