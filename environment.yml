@@ -1,0 +1,46 @@
+name: bmbf-ki
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - tzdata
+  - prompt-toolkit
+  - debugpy
+  - wcwidth
+  - wheel
+  - entrypoints
+  - certifi
+  - python-dateutil
+  - stack_data
+  - tornado
+  - pyzmq
+  - nest-asyncio
+  - vs2015_runtime
+  - six
+  - vc
+  - jupyter_core
+  - jupyter_client
+  - ipython
+  - colorama
+  - backcall
+  - asttokens
+  - setuptools
+  - executing
+  - pure_eval
+  - ca-certificates
+  - parso
+  - jedi
+  - openssl
+  - sqlite
+  - pickleshare
+  - pip
+  - matplotlib-inline
+  - pygments
+  - wincertstore
+  - decorator
+  - pywin32
+  - traitlets
+  - zeromq
+  - libsodium
+  - ipykernel
+prefix: D:\Software\Miniconda\envs\bmbf-ki
