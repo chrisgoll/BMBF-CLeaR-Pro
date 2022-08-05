@@ -1,4 +1,3 @@
-import roboticstoolbox as rtb
 from spatialmath import *
 from spatialmath.base import *
 import numpy as np
@@ -41,7 +40,7 @@ class Parameters(object):
         config = configparser.ConfigParser()
         config.read(file)
         parameter_names = [
-            'off1', 'off2', 'off3', 'off4', 'off5', 'off6',
+            'theta1', 'theta2', 'theta3', 'theta4', 'theta5', 'theta6',
             'd1', 'd2', 'd3', 'd4', 'd5', 'd6',
             'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
             'alpha1', 'alpha2', 'alpha3','alpha4','alpha5', 'alpha6',
@@ -95,58 +94,188 @@ class Parameters(object):
 class Robot(object):
     """holds all robot related information"""    
     def __init__(self, params, lims=None):
-        """It is initiated with a set of d-h-parameters, joint angle limits and 
-        a name.
+        p = params.valuesdict()
+        model = {
+                'Base'  : (SE3(p['basetx'], p['basety'], p['basetz']) * \
+                        SE3.RPY([p['baserx'], p['basery'], p['baserz']], unit='deg', order='zyx')).A,
+                'Tool'  : (SE3(p['tooltx'], p['toolty'], p['tooltz']) * \
+                        SE3.RPY([p['toolrx'], p['toolry'], p['toolrz']], unit='deg', order='zyx')).A,                        
+                'theta' : np.deg2rad(np.array([p['theta1'], p['theta2'], p['theta3'], p['theta4'], p['theta5'], p['theta6']])),
+                'd'     :            np.array([p['d1'], p['d2'], p['d3'], p['d4'], p['d5'], p['d6']]),
+                'a'     :            np.array([p['a1'], p['a2'], p['a3'], p['a4'], p['a5'], p['a6']]),
+                'alpha' : np.deg2rad(np.array([p['alpha1'], p['alpha2'], p['alpha3'], p['alpha4'], p['alpha5'], p['alpha6']])),
+            }
+        self.robot = model
+
+    def calc_direct(self, q, **kwargs):
+        """calcs forward transformation
 
         Parameters
         ----------
-        params : lmfit parameter object
-            d-h-parameter of robot (including base and tool transformation)
-        lims : numpy array (6, 3)
-            joint angle limits in rad
-        name : string
-            robot name
+        q : numpy array (6,)
+            array of joint angles
+        model : dict
+            dictionary of model parameters (dh-parameters)
+        err : numpy array (6,)
+            array of model errors
+
+        Returns
+        -------
+        list of numpy arrays (4,4)
+            list of joint frames
+        """    
+        if 'err' in kwargs:
+            err_arr = kwargs['err']
+        else:
+            err_arr = np.zeros((6, 4))
+        poses = []
+        model = self.robot
+        for q_pose in q:
+            frames = []
+            frames.append(model['Base'])
+            for num, (q, theta, d, a, alpha, err) in enumerate(zip(q_pose, model['theta'], model['d'], model['a'], model['alpha'], err_arr)):
+                local_trafo = np.array([ 
+                    [np.cos((theta-err[0])+q), -np.sin((theta-err[0])+q)*np.cos((alpha-err[3])),  np.sin((theta-err[0])+q)*np.sin((alpha-err[3])), (a-err[2])*np.cos((theta-err[0])+q)], 
+                    [np.sin((theta-err[0])+q),  np.cos((theta-err[0])+q)*np.cos((alpha-err[3])), -np.cos((theta-err[0])+q)*np.sin((alpha-err[3])), (a-err[2])*np.sin((theta-err[0])+q)],
+                    [                       0,                           np.sin((alpha-err[3])),                           np.cos((alpha-err[3])),                          (d-err[1])],
+                    [                       0,                                                0,                                                0,                                   1] 
+                    ])
+                frames.append(frames[-1] @ local_trafo)
+            frames.append(frames[-1] @ model['Tool'])
+            poses.append(frames)
+
+        return poses
+
+    def calc_inverse(self, toolpath, conf):
+        """calcs the inverse transformation
+
+        Parameters
+        ----------
+        tcp : list of numpy arrays (4, 4)
+            tcp frames
+        model : dict
+            dictionary of model parameters (dh-parameters)
+        conf : dict
+            dictionary of robot configurations ('shoulder', 'elbow','wrist')
         """
-        if lims is None:
-            lims = np.array([
-                [-np.inf, np.inf],
-                [-np.inf, np.inf],
-                [-np.inf, np.inf],
-                [-np.inf, np.inf],
-                [-np.inf, np.inf],
-                [-np.inf, np.inf],
-            ])
-        # parameter
-        p = params.valuesdict()
-        # robot
-        self.rtb_robot = rtb.robot.DHRobot(
-            [
-                rtb.robot.DHLink(
-                    offset=p['off1'], d=p['d1'], a=p['a1'], alpha=p['alpha1'], qlim=[lims[0, 0], lims[0, 1]]
-                    ),
-                rtb.robot.DHLink(
-                    offset=p['off2'], d=p['d2'], a= p['a2'], alpha=p['alpha2'], qlim=[lims[1, 0], lims[1, 1]]
-                    ),
-                rtb.robot.DHLink(
-                    offset=p['off3'], d=p['d3'], a=-p['a3'], alpha=p['alpha3'], qlim=[lims[2, 0], lims[2, 1]]
-                    ),
-                rtb.robot.DHLink(
-                    offset=p['off4'], d=p['d4'], a=p['a4'], alpha=p['alpha4'], qlim=[lims[3, 0], lims[3, 1]]
-                    ),
-                rtb.robot.DHLink(
-                    offset=p['off5'], d=p['d5'], a=p['a5'], alpha=p['alpha5'], qlim=[lims[4, 0], lims[4, 1]]
-                    ),
-                rtb.robot.DHLink(
-                    offset=p['off6'], d=p['d6'], a=p['a6'], alpha=p['alpha6'], qlim=[lims[5, 0], lims[5, 1]]
-                    )
-            ],
-            name='Comau',
-            tool = SE3(p['tooltx'], p['toolty'], p['tooltz']) * \
-                SE3.RPY([p['toolrx'], p['toolry'], p['toolrz']], unit='rad', order='zyx'),
-            base = SE3(p['basetx'], p['basety'], p['basetz']) * \
-                SE3.RPY([p['baserx'], p['basery'], p['baserz']], unit='rad', order='zyx')
-            )
-        self.rtb_robot.addconfiguration('home', [0, 0, 0, 0, 0, 0])
+        def A_i_i_minus_1(q, alpha):
+            """calcs transformation matrix from dh-parameter and joint angle
+
+            Parameters
+            ----------
+            q : numpy array (6,)
+                array of joint angles
+            alpha : float
+                dh-parameter
+
+            Returns
+            -------
+            list of numpy arrays (4,4)
+                homogenous transformation matrices
+            """
+            A = np.array([
+                [ np.cos(q), -np.sin(q)*np.cos(alpha),  np.sin(q)*np.sin(alpha)],
+                [ np.sin(q),  np.cos(q)*np.cos(alpha), -np.cos(q)*np.sin(alpha)],
+                [         0,            np.sin(alpha),            np.cos(alpha)]
+                ])            
+            return A
+
+        qs = []
+        model = self.robot
+        for se3 in toolpath:
+            tcp = se3.A @ np.linalg.inv(self.robot['Tool'])
+            # q1
+            n = tcp[0:3, 2]
+            p04 = tcp[0:3, 3] - model['d'][5]*n - np.array([0, 0, 1])*model['d'][0]
+            if conf['shoulder'] == 'front':
+                q1 = np.arctan2(p04[1], p04[0])
+            else:
+                q1 = np.arctan2(-p04[1], -p04[0])
+            # q2
+            p01 = model['a'][0]*np.cos(q1), model['a'][0]*np.sin(q1), 0
+            p14 = p04 - p01
+            A_01 = A_i_i_minus_1(q1, model['alpha'][0])
+            p14_1 = A_01.T @ p14
+            beta1 = np.arctan2(-p14_1[1], p14_1[0])
+            l35 = np.sqrt(model['a'][2]**2 + model['d'][3]**2)
+            beta2 = np.arccos((model['a'][1]**2 + np.linalg.norm(p14)**2 - l35**2) / \
+                (2 * model['a'][1]*np.linalg.norm(p14)))
+            if conf['elbow'] == 'up':
+                q2 = -(beta1 + beta2)
+            else:
+                q2 = -(beta1 - beta2)
+            # q3
+            cosarg1 = (model['a'][1]**2 + l35**2 - np.linalg.norm(p14)**2)/(2 * model['a'][1]*l35)
+            if np.abs(cosarg1) > 1:
+                print('position out of range!')
+                exit()
+            phi1 = np.arccos(cosarg1)
+            phi2 = np.arccos(model['d'][3] / l35)
+            if conf['elbow'] == 'up':
+                q3 = 3 * np.pi / 2 - phi1 + phi2
+            else:
+                q3 = -(np.pi / 2 - phi1 - phi2)
+            # q5
+            A_12 = A_i_i_minus_1(q2, model['alpha'][1])
+            A_23 = A_i_i_minus_1(q3, model['alpha'][2])
+            A_03 = A_01 @ A_12 @ A_23
+            x3_0 = A_03[:, 0]
+            y3_0 = A_03[:, 1]
+            z3_0 = A_03[:, 2]
+            q5norm = np.arccos(z3_0 @ n)
+            q5 = q5norm
+            if conf['wrist'] == 'up':
+                q5 = q5norm
+            else:
+                q5 = -q5norm
+            
+            # q4
+            if conf['wrist'] == 'up':
+                if q5 == 0:
+                    c_0 = np.array([0, 1, 0])
+                else:
+                    c_0 = np.cross(z3_0, n) / np.linalg.norm(np.cross(z3_0, n))
+            else:
+                if q5 == 0:
+                    c_0 = np.array([0, -1, 0])
+                else:
+                    c_0 = np.cross(n, z3_0) / np.linalg.norm(np.cross(n, z3_0))
+            dq4norm = np.arccos(y3_0 @ c_0)
+            chi = np.arccos(x3_0 @ c_0)
+            if chi <= np.pi/2:
+                dq4 = -np.abs(dq4norm)
+            elif chi > np.pi/2:
+                dq4 = np.abs(dq4norm)
+            q4 = np.pi + dq4
+            # q6
+            A_34 = A_i_i_minus_1(q4, model['alpha'][3])
+            A_45 = A_i_i_minus_1(q5, model['alpha'][4])
+            A_05 = A_03 @ A_34 @ A_45
+            x5_0 = A_05[:, 0]
+            y5_0 = A_05[:, 1]
+            z5_0 = A_05[:, 2]
+            l = tcp[0:3, 0]
+            q6norm = np.arccos(x5_0.T @ l)
+            delta = np.arccos(y5_0.T @ l)
+            if delta <= np.pi/2:
+                q6 = abs(q6norm)
+            else:
+                q6 = -abs(q6norm)
+            if np.abs(q5) < 0.001:
+                q4 = np.pi
+                q6 = -np.pi/2
+                
+            q = [
+                q1-model['theta'][0], 
+                q2-model['theta'][1],
+                q3-model['theta'][2],
+                q4-model['theta'][3],
+                q5-model['theta'][4],
+                q6-model['theta'][5],
+                ]
+            qs.append(q)        
+
+        return np.array(qs)
 
 
 
@@ -307,14 +436,16 @@ class Simulation(object):
         self.robot_ideal = Robot(parameters[0])
         self.robot_real = Robot(parameters[1])
         start_time_inverse = time.time()
-        self.joint_angles = np.asarray(
-            [self.robot_ideal.rtb_robot.ikine_LM(traj).q for traj in self.toolpath]
-            )
+        conf = {
+            'shoulder' : 'front',
+            'elbow'    : 'up',
+            'wrist'    : 'up',
+            }
+        self.joint_angles = self.robot_ideal.calc_inverse(self.toolpath, conf)
         print('\n')
         print('calculation time (inverse transformation): {:.3f}s'.format(
             time.time()-start_time_inverse
-        ))
-        
+        ))        
         print('\n')
         print('Simulation class object instantiated')
 
@@ -339,27 +470,27 @@ class Simulation(object):
             material removal result mesh
         """
         robot = Robot(parameters)
-        trajectory_rb = [robot.rtb_robot.fkine(ja) for ja in self.joint_angles]
-        trajectory_w = [self.workpiece.pose.inv() @ traj for traj in trajectory_rb]
+        toolpath_rb = robot.calc_direct(self.joint_angles)
+        toolpath_w = [self.workpiece.pose.inv().A @ pose[-1] for pose in toolpath_rb]
         # define tool path position and orientation
-        tool_path_pos = np.asarray([traj.t*1e3 for traj in trajectory_w])
-        tool_path_ori = np.asarray([traj.A[0:3, 2] for traj in trajectory_w])        
+        toolpath_pos = np.asarray([traj[0:3, 3]*1e3 for traj in toolpath_w])
+        toolpath_ori = np.asarray([traj[0:3, 2] for traj in toolpath_w])        
       
         # allocation array of double*
         # tool_path position
-        tool_path_pos_in = (POINTER(c_double) * tool_path_pos.shape[0])()
-        for i in range(tool_path_pos.shape[0]):
+        tool_path_pos_in = (POINTER(c_double) * toolpath_pos.shape[0])()
+        for i in range(toolpath_pos.shape[0]):
             # allocate arrays of double
             tool_path_pos_in[i] = (c_double * 3)()
             for j in range(3):
-                tool_path_pos_in[i][j] = tool_path_pos[i, j]
+                tool_path_pos_in[i][j] = toolpath_pos[i, j]
         # tool_path orientation
-        tool_path_ori_in = (POINTER(c_double) * tool_path_ori.shape[0])()
-        for i in range(tool_path_ori.shape[0]):
+        tool_path_ori_in = (POINTER(c_double) * toolpath_ori.shape[0])()
+        for i in range(toolpath_ori.shape[0]):
             # allocate arrays of double
             tool_path_ori_in[i] = (c_double * 3)()
             for j in range(3):
-                tool_path_ori_in[i][j] = tool_path_ori[i, j]
+                tool_path_ori_in[i][j] = toolpath_ori[i, j]
 
         # set file paths before current working directory is changed
         strings = self.workpiece.result_file_path.split('.')
@@ -394,7 +525,7 @@ class Simulation(object):
             self.tool.diameter,
             self.tool.flute_length,
             self.import_precision,
-            tool_path_pos.shape[0],
+            toolpath_pos.shape[0],
             is_print
         )
         if is_print:
@@ -527,10 +658,10 @@ class Visualization(object):
                 )
             tool_geo.compute_vertex_normals()
 
-            trajectory_rb = [self.simulation.robot_real.rtb_robot.fkine(ja) for ja in self.simulation.joint_angles]
-            trajectory_w = [self.workpiece.pose.inv() @ traj for traj in trajectory_rb]
+            toolpath_rb = self.simulation.robot_real.calc_direct(self.simulation.joint_angles)
+            toolpath_w = [self.workpiece.pose.inv().A @ pose[-1] for pose in toolpath_rb]
 
-            T = np.copy(trajectory_w[tool_pose].A)
+            T = np.copy(toolpath_w[0])
             T[:3, 3] *= 1000
             tool_geo = tool_geo.transform(T)
             tool_geo = tool_geo.translate([0, 0, self.tool.flute_length/2])
