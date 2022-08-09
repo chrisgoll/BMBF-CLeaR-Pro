@@ -44,7 +44,6 @@ dependencies:
   - tornado
   - traitlets
   - tzdata
-  - vs2015_runtime
   - wcwidth
   - wheel
   - zeromq
