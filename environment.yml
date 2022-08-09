@@ -1,56 +1,81 @@
-name: mybinder_test
+name: bmbf-ki
 channels:
-  - defaults
   - conda-forge
-  - conda-forge/label/broken
+  - defaults
 dependencies:
+  - asttokens
+  - backcall
+  - backports
+  - backports.functools_lru_cache
   - ca-certificates
   - certifi
+  - colorama
+  - debugpy
+  - decorator
+  - entrypoints
+  - executing
+  - ipykernel
+  - ipython
+  - jedi
+  - jupyter_client
+  - jupyter_core
+  - libsodium
+  - matplotlib-inline
+  - nest-asyncio
   - openssl
+  - packaging
+  - parso
+  - pickleshare
   - pip
+  - prompt-toolkit
+  - psutil
+  - pure_eval
+  - pygments
+  - pyparsing
   - python
+  - python-dateutil
+  - python_abi
+  - pywin32
+  - pyzmq
   - setuptools
+  - six
   - sqlite
+  - stack_data
+  - tornado
+  - traitlets
   - tzdata
+  - vc
+  - vs2015_runtime
+  - wcwidth
   - wheel
+  - wincertstore
+  - zeromq
   - pip:
     - ansitable
     - anyio
     - argon2-cffi
     - argon2-cffi-bindings
     - asteval
-    - asttokens
     - attrs
     - babel
-    - backcall
     - beautifulsoup4
     - bleach
     - cffi
     - charset-normalizer
-    - colorama
     - colored
     - cycler
-    - debugpy
-    - decorator
     - defusedxml
     - deprecation
-    - entrypoints
-    - executing
     - fastjsonschema
     - fonttools
     - future
     - idna
     - importlib-metadata
-    - ipykernel
-    - ipython
     - ipython-genutils
     - ipywidgets
-    - jedi
     - jinja2
     - json5
     - jsonschema
-    - jupyter-client
-    - jupyter-core
     - jupyter-packaging
     - jupyter-server
     - jupyterlab
@@ -61,57 +86,36 @@ dependencies:
     - lmfit
     - markupsafe
     - matplotlib
-    - matplotlib-inline
     - mistune
     - nbclassic
     - nbclient
     - nbconvert
     - nbformat
-    - nest-asyncio
     - notebook
     - notebook-shim
     - numpy
     - numpy-stl
     - open3d
-    - packaging
     - pandocfilters
-    - parso
-    - pickleshare
     - pillow
     - prometheus-client
-    - prompt-toolkit
-    - psutil
-    - pure-eval
     - pycparser
-    - pygments
-    - pyparsing
     - pyrsistent
-    - python-dateutil
     - python-utils
     - pytz
-    - pywin32
     - pywinpty
-    - pyzmq
     - requests
     - scipy
     - send2trash
-    - six
     - sniffio
     - soupsieve
     - spatialmath-python
-    - stack-data
     - terminado
     - tinycss2
     - tomlkit
-    - tornado
-    - traitlets
     - uncertainties
     - urllib3
-    - wcwidth
     - webencodings
     - websocket-client
     - widgetsnbextension
     - zipp
-    - vc
-    - vs2015_runtime
-    - wincertstore
