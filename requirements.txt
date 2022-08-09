@@ -1,0 +1,4 @@
+spatialmath-python==1.0.0
+open3d==0.15.1
+numpy-stl==2.17.1
+lmfit==1.0.3
