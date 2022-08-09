@@ -10,7 +10,4 @@ dependencies:
   - setuptools
   - sqlite
   - tzdata
-  - vc
-  - vs2015_runtime
   - wheel
-  - wincertstore
