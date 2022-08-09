@@ -92,7 +92,7 @@ dependencies:
     - notebook-shim
     - numpy
     - numpy-stl
-    - open3d
+    - open3d==0.14.1
     - pandocfilters
     - pillow
     - prometheus-client
