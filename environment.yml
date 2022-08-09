@@ -1,13 +1,118 @@
-name: conda_test
+name: bmbf-ki
 channels:
+  - conda-forge
   - defaults
 dependencies:
+  - asttokens
+  - backcall
+  - backports
+  - backports.functools_lru_cache
   - ca-certificates
   - certifi
+  - colorama
+  - debugpy
+  - decorator
+  - entrypoints
+  - executing
+  - ipykernel
+  - ipython
+  - jedi
+  - jupyter_client
+  - jupyter_core
+  - libsodium
+  - matplotlib-inline
+  - nest-asyncio
   - openssl
+  - packaging
+  - parso
+  - pickleshare
   - pip
+  - prompt-toolkit
+  - psutil
+  - pure_eval
+  - pygments
+  - pyparsing
   - python
+  - python-dateutil
+  - python_abi
+  - pywin32
+  - pyzmq
   - setuptools
+  - six
   - sqlite
+  - stack_data
+  - tornado
+  - traitlets
   - tzdata
+  - wcwidth
   - wheel
+  - zeromq
+  - pip:
+    - ansitable
+    - anyio
+    - argon2-cffi
+    - argon2-cffi-bindings
+    - asteval
+    - attrs
+    - babel
+    - beautifulsoup4
+    - bleach
+    - cffi
+    - charset-normalizer
+    - colored
+    - cycler
+    - defusedxml
+    - deprecation
+    - fastjsonschema
+    - fonttools
+    - future
+    - idna
+    - importlib-metadata
+    - ipython-genutils
+    - ipywidgets
+    - jinja2
+    - json5
+    - jsonschema
+    - jupyter-packaging
+    - jupyter-server
+    - jupyterlab
+    - jupyterlab-pygments
+    - jupyterlab-server
+    - jupyterlab-widgets
+    - kiwisolver
+    - lmfit
+    - markupsafe
+    - matplotlib
+    - mistune
+    - nbclassic
+    - nbclient
+    - nbconvert
+    - nbformat
+    - notebook
+    - notebook-shim
+    - numpy
+    - numpy-stl
+    - open3d
+    - pandocfilters
+    - pillow
+    - prometheus-client
+    - pycparser
+    - pyrsistent
+    - python-utils
+    - pytz
+    - pywinpty
+    - requests
+    - scipy
+    - send2trash
+    - sniffio
+    - soupsieve
+    - spatialmath-python
+    - terminado
+    - tinycss2
+    - tomlkit
+    - uncertainties
+    - urllib3
+    - webencodings
+    - websocket-client
+    - widgetsnbextension
+    - zipp
