@@ -112,6 +112,3 @@ dependencies:
     - websocket-client
     - widgetsnbextension
     - zipp
-    - vc
-    - vs2015_runtime
-    - wincertstore
