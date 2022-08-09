@@ -2,6 +2,7 @@ name: mybinder_test
 channels:
   - defaults
   - conda-forge
+  - conda-forge/label/broken
 dependencies:
   - ca-certificates
   - certifi
