@@ -12,10 +12,7 @@ dependencies:
   - setuptools
   - sqlite
   - tzdata
-  - vc
-  - vs2015_runtime
   - wheel
-  - wincertstore
   - pip:
     - ansitable
     - anyio
@@ -115,3 +112,6 @@ dependencies:
     - websocket-client
     - widgetsnbextension
     - zipp
+    - vc
+    - vs2015_runtime
+    - wincertstore
