@@ -1,0 +1,6 @@
+name: mybinder_test
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+prefix: D:\Software\Miniconda\envs\mybinder_test
